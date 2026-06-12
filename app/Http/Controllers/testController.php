@@ -8,7 +8,7 @@ namespace App\Http\Controllers;
         {
            try{
              return response()->json([
-                'message'=>'hello from server',
+                'message'=>'hello to server',
                 'success'=>true,
                 'status'=>200
             ]);
