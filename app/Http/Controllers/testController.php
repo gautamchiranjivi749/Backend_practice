@@ -10,7 +10,7 @@ namespace App\Http\Controllers;
             $data = User::firstorFail();
 
              return response()->json([
-                'message'=>'hello to server',
+                'message'=>'hello to abcd server',
                 'success'=>true,
                 'status'=>200,
                 'data'=>$data
