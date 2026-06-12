@@ -7,13 +7,13 @@ namespace App\Http\Controllers;
     public function test()
         {
            try{
-            $data = User::firstorFail();
+           
 
-             return response()->json([
+                return response()->json([
                 'message'=>'hello to abcd server',
                 'success'=>true,
                 'status'=>200,
-                'data'=>$data
+            
             ]);
            }
            catch(Exception $e){
