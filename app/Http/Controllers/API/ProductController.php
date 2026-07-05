@@ -7,95 +7,113 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Http\Resources\ProductResource;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Traits\ApiResponse;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-      public function index()
-    {
-        return response()->json(
-            Product::with('category')->latest()->get()
-        );
+    use ApiResponse;
+    public function index(Request $request)
+{
+    $products = Product::with('category')
+        ->where('status', 1);
+    
+        if ($request->filled('search')) {
+        $products->where('name', 'like', '%' . $request->search . '%');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required',
-            'price' => 'required',
-            'stock' => 'required',
-            'image' => 'nullable|image'
-        ]);
+    if ($request->filled('category')) {
+    $products->where('category_id', $request->category);
+}
+    if ($request->filled('sort')) {
 
-        $imagePath = null;
+    switch ($request->sort) {
 
-        if($request->hasFile('image'))
-        {
-            $imagePath = $request
-                ->file('image')
-                ->store('products','public');
+        case 'price_asc':
+            $products->orderBy('price', 'asc');
+            break;
+
+        case 'price_desc':
+            $products->orderBy('price', 'desc');
+            break;
+
+        case 'latest':
+            $products->latest();
+            break;
+    }
+}
+
+    return $this->success(
+    ProductResource::collection($products->paginate(2)),
+    'Products fetched successfully.'
+    );
+}
+   public function store(StoreProductRequest $request)
+{
+    $validated = $request->validated();
+
+    $imagePath = null;
+
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('products', 'public');
+    }
+
+    $product = Product::create([
+        'category_id' => $validated['category_id'],
+        'name' => $validated['name'],
+        'slug' => Str::slug($validated['name']),
+        'description' => $validated['description'] ?? null,
+        'price' => $validated['price'],
+        'stock' => $validated['stock'],
+        'status' => $validated['status'],
+        'image' => $imagePath,
+    ]);
+
+    return $this->success(
+        new ProductResource($product),
+        'Product Created Successfully'
+    );
+}
+
+   public function show(Product $product)
+{
+    return $this->success(
+    new ProductResource($product),
+    'Product fetched successfully.'
+);
+}
+
+  public function update(UpdateProductRequest $request, $id)
+{
+    $product = Product::findOrFail($id);
+
+    $validated = $request->validated();
+
+    if ($request->hasFile('image')) {
+
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
         }
 
-        $product = Product::create([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'image' => $imagePath,
-            'status' => $request->status ?? 1
-        ]);
-
-        return response()->json([
-            'message' => 'Product Created',
-            'data' => $product
-        ]);
+        $validated['image'] = $request->file('image')->store('products', 'public');
     }
 
-    public function show($id)
-    {
-        return response()->json(
-            Product::with('category')->findOrFail($id)
-        );
+    if (isset($validated['name'])) {
+        $validated['slug'] = Str::slug($validated['name']);
     }
 
-    public function update(Request $request, $id)
-    {
-        $product = Product::findOrFail($id);
+    $product->update($validated);
 
-        if($request->hasFile('image'))
-        {
-            if($product->image)
-            {
-                Storage::disk('public')
-                    ->delete($product->image);
-            }
-
-            $product->image = $request
-                ->file('image')
-                ->store('products','public');
-        }
-
-        $product->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'status' => $request->status
-        ]);
-
-        $product->save();
-
-        return response()->json([
-            'message' => 'Product Updated'
-        ]);
-    }
+    return $this->success(
+        new ProductResource($product->fresh()),
+        'Product updated successfully.'
+    );
+}
 
     public function destroy($id)
     {
@@ -109,9 +127,10 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return response()->json([
-            'message' => 'Product Deleted'
-        ]);
+       return $this->success(
+    null,
+    'Product deleted successfully.'
+        );
     }
    
 }

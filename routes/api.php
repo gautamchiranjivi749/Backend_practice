@@ -6,7 +6,7 @@ use App\Http\Controllers\testController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\admin\DashboardController;
 use App\Http\Controllers\API\admin\CategoryController;
-use App\Http\Controllers\API\admin\ProductController;
+use App\Http\Controllers\API\ProductController;
 use App\Models\Category;
 use App\Models\User;
 
@@ -48,6 +48,9 @@ Route::get('/categories',function(){
      return Category::where('status', true)->get();
 
 });
+
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
 
 
 
