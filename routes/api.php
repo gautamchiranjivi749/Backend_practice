@@ -8,6 +8,8 @@ use App\Http\Controllers\API\admin\DashboardController;
 use App\Http\Controllers\API\admin\CategoryController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\WishlistController;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Cart;
@@ -64,5 +66,15 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
 
-});
+    //route for checkout
+    Route::post('/checkout', [OrderController::class, 'checkout']);
 
+    Route::get('/orders', [OrderController::class, 'myOrders']);
+
+
+    //wishlist routes
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+Route::post('/wishlist', [WishlistController::class, 'store']);
+Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
+
+});
