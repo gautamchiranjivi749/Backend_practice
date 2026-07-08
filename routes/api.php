@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\testController;
 use App\Http\Controllers\API\AuthController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\WishlistController;
+use App\Http\Controllers\API\PaymentController;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Cart;
@@ -77,4 +79,17 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 Route::post('/wishlist', [WishlistController::class, 'store']);
 Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
 
+    //payment routes
+    Route::post('/payment/esewa/{order}',[PaymentController::class,'pay']
+    );
+
+    Route::get('/payment/success',[PaymentController::class,'success']
+    );
+
+    Route::get('/payment/failure',[PaymentController::class,'failure']
+    );
+
+    Route::post('/payment/esewa/{order}', [PaymentController::class, 'pay']);
+
+    Route::post('/payment/esewa/{order}', [PaymentController::class,'pay']);
 });

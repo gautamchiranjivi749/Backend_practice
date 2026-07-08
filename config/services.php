@@ -35,4 +35,30 @@ return [
         ],
     ],
 
+    'esewa' => [
+
+    'mode' => env('ESEWA_MODE'),
+
+    'base_url' => env('ESEWA_BASE_URL'),
+
+    'merchant_code' => env('ESEWA_MERCHANT_CODE'),
+
+    'secret_key' => env('ESEWA_SECRET_KEY'),
+
+    'success_url' => env('ESEWA_SUCCESS_URL'),
+
+    'failure_url' => env('ESEWA_FAILURE_URL'),
+
+],
+
+    'paypal' => [
+
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // or 'live'
+
+    ],
+
 ];
