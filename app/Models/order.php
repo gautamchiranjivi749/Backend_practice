@@ -3,13 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Payment;
+use App\Models\User;
+use App\Models\OrderItem;
+
 
 class order extends Model
 {
   protected $fillable = [
         'user_id',
         'total_amount',
-        'status'
+        'status',
+        'payment_method',
+        'payment_status'
     ];
 
     public function user()
@@ -21,4 +27,8 @@ class order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    public function payment()
+{
+    return $this->hasOne(Payment::class);
+}
 }
