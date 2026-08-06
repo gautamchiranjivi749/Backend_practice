@@ -76,8 +76,13 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 
     //wishlist routes
     Route::get('/wishlist', [WishlistController::class, 'index']);
+<<<<<<< HEAD
     Route::post('/wishlist', [WishlistController::class, 'store']);
     Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
+=======
+Route::post('/wishlist', [WishlistController::class, 'store']);
+Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
+>>>>>>> be3d86ed202ce40ff5583d3cf4f7397e00fba70e
 
     //payment routes
     Route::post('/payment/esewa/{order}',[PaymentController::class,'pay']
