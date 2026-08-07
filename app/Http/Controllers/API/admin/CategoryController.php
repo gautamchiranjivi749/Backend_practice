@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Resources\CategoryResource;
 
 class CategoryController extends Controller
@@ -24,21 +25,22 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-       Category::create([
-    'name' => $request->name,
-    'slug' => Str::slug($request->name),
-    'description' => $request->description,
-    'status' => $request->status,
-    'parent_id' => $request->parent_id,
-]);
-        return response()->json([
-        'status' => "success",
-        'message' => 'Category created successfully',
-        'data' => new CategoryResource($category)
+    public function store(StoreCategoryRequest $request)
+{
+    $category = Category::create([
+        'name' => $request->name,
+        'slug' => $request->slug ?? Str::slug($request->name),
+        'description' => $request->description,
+        'status' => $request->status,
+        'parent_id' => $request->parent_id,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Category created successfully.',
+        'data' => $category,
     ], 201);
-    }
+}
 
     /**
      * Display the specified resource.

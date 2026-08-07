@@ -37,18 +37,8 @@ Route::middleware('auth:sanctum')->group(function (){
 });
 
 
-//ADMIN DASHBOARD ROUTE
-
-Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 
 
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::apiResource('/products', ProductController::class);
-    Route::apiResource('/categories', CategoryController::class);
-
-
-
-});
 
 Route::get('/categories',function(){
      return Category::where('status', true)->get();
@@ -58,8 +48,15 @@ Route::get('/categories',function(){
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 
+//ADMIN DASHBOARD ROUTE
 
 Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
+
+ Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::apiResource('/products', ProductController::class);
+    Route::apiResource('/categories', CategoryController::class);
+
+
     Route::get('/cart', [CartController::class, 'index']);
 
     Route::post('/cart', [CartController::class, 'store']);
@@ -76,13 +73,8 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 
     //wishlist routes
     Route::get('/wishlist', [WishlistController::class, 'index']);
-<<<<<<< HEAD
     Route::post('/wishlist', [WishlistController::class, 'store']);
     Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
-=======
-Route::post('/wishlist', [WishlistController::class, 'store']);
-Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
->>>>>>> be3d86ed202ce40ff5583d3cf4f7397e00fba70e
 
     //payment routes
     Route::post('/payment/esewa/{order}',[PaymentController::class,'pay']
