@@ -24,6 +24,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'status',
+        'role'
     ];
 
     /**
@@ -46,6 +48,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => 'boolean',
         ];
     }
     public function carts()
@@ -60,5 +63,9 @@ class User extends Authenticatable
         {
             return $this->hasMany(Wishlist::class);
         }
+        public function addresses()
+{
+    return $this->hasMany(UserAddress::class);
+}
 
 }
