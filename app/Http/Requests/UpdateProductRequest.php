@@ -20,7 +20,8 @@ class UpdateProductRequest extends FormRequest
             'price' => 'sometimes|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
             'status' => 'sometimes|boolean',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:20480',
+            'brand_id' => 'nullable|exists:brands,id',
         ];
     }
 }

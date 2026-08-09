@@ -8,6 +8,7 @@ class Product extends Model
 {
     protected $fillable = [
         'category_id',
+        'brand_id',
         'name',
         'slug',
         'description',
@@ -15,6 +16,9 @@ class Product extends Model
         'stock',
         'image',
         'status'
+    ];
+    protected $casts = [
+        'status' => 'boolean',
     ];
       public function category()
     {
@@ -28,4 +32,13 @@ class Product extends Model
 {
     return $this->hasMany(Wishlist::class);
 }
+public function brand()
+    {
+        return $this->belongsTo(Brand::class);
+    }
+public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
 }

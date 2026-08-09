@@ -12,6 +12,8 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\WishlistController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\BrandController;
+use App\Http\Controllers\API\ProductVariantController;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Cart;
@@ -53,8 +55,14 @@ Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 
  Route::get('/dashboard', [DashboardController::class, 'index']);
+
     Route::apiResource('/products', ProductController::class);
+
+    Route::apiResource('/brands', BrandController::class);
+    
     Route::apiResource('/categories', CategoryController::class);
+
+    Route::apiResource('/product-variants', ProductVariantController::class);
 
 
     Route::get('/cart', [CartController::class, 'index']);

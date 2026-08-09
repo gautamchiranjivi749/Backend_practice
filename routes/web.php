@@ -19,6 +19,5 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::get('/dashboard',[AdminController::class,'index']);
 
 require __DIR__.'/auth.php';
