@@ -14,6 +14,10 @@ use App\Http\Controllers\API\WishlistController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\InventoryController;
+use App\Http\Controllers\API\CustomerController;
+use App\Http\Controllers\API\UserAddressController;
+use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Cart;
@@ -64,6 +68,61 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
 
     Route::apiResource('/product-variants', ProductVariantController::class);
 
+     Route::get(
+        '/inventory/low-stock',
+        [InventoryController::class, 'lowStock']
+    );
+
+    Route::get(
+        '/inventory/out-of-stock',
+        [InventoryController::class, 'outOfStock']
+    );
+
+  Route::get(
+        '/inventory',
+        [InventoryController::class, 'index']
+    );
+
+    Route::post(
+        '/inventory/products/{productId}/add',
+        [InventoryController::class, 'addStock']
+    );
+
+    Route::post(
+        '/inventory/products/{productId}/remove',
+        [InventoryController::class, 'removeStock']
+    );
+
+    Route::put(
+        '/inventory/products/{productId}/stock',
+        [InventoryController::class, 'setStock']
+    );
+
+    Route::post(
+        '/inventory/variants/{variantId}/add',
+        [InventoryController::class, 'addVariantStock']
+    );
+
+    Route::post(
+        '/inventory/variants/{variantId}/remove',
+        [InventoryController::class, 'removeVariantStock']
+    );
+
+    Route::put(
+        '/inventory/variants/{variantId}/stock',
+        [InventoryController::class, 'setVariantStock']
+    );
+
+    Route::get('/customers', [CustomerController::class, 'index']);
+
+    Route::get('/customers/{id}', [CustomerController::class, 'show']);
+
+    Route::put('/customers/{id}', [CustomerController::class, 'update']);
+
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+
+    Route::Patch('/customers/{id}/status', [CustomerController::class, 'status']);
+   
 
     Route::get('/cart', [CartController::class, 'index']);
 
@@ -77,6 +136,36 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
     Route::post('/checkout', [OrderController::class, 'checkout']);
 
     Route::get('/orders', [OrderController::class, 'myOrders']);
+
+     Route::get(
+        '/addresses',
+        [UserAddressController::class, 'index']
+    );
+
+    Route::post(
+        '/addresses',
+        [UserAddressController::class, 'store']
+    );
+
+    Route::get(
+        '/addresses/{id}',
+        [UserAddressController::class, 'show']
+    );
+
+    Route::put(
+        '/addresses/{id}',
+        [UserAddressController::class, 'update']
+    );
+
+    Route::delete(
+        '/addresses/{id}',
+        [UserAddressController::class, 'destroy']
+    );
+
+    Route::patch(
+        '/addresses/{id}/default',
+        [UserAddressController::class, 'setDefault']
+    );
 
 
     //wishlist routes
