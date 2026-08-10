@@ -1,26 +1,40 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\testController;
+
+/*
+|--------------------------------------------------------------------------
+| Controllers
+|--------------------------------------------------------------------------
+*/
+
+// Authentication
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\admin\DashboardController;
-use App\Http\Controllers\API\admin\CategoryController;
+
+// Public
+use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\ProductController;
-use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\API\OrderController;
-use App\Http\Controllers\API\WishlistController;
-use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\ProductVariantController;
+
+// Customer
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\ReviewController;
+
+// Admin
+use App\Http\Controllers\API\AdminCustomerController;
+use App\Http\Controllers\API\AdminOrderController;
+use App\Http\Controllers\API\AdminPaymentController;
+use App\Http\Controllers\API\AdminReviewController;
 use App\Http\Controllers\API\InventoryController;
+use App\Http\Controllers\API\AdminDashboardController;
+use App\Http\Controllers\API\admin\DashboardController;
+use App\Http\Controllers\API\WishlistController;
 use App\Http\Controllers\API\CustomerController;
 use App\Http\Controllers\API\UserAddressController;
-use App\Models\Product;
-use App\Models\Category;
-use App\Models\User;
-use App\Models\Cart;
+
 
 
 
@@ -30,10 +44,22 @@ use App\Models\Cart;
 // })->middleware('auth:sanctum');
 
 
+Route::prefix('auth')->group(function () {
 
+    Route::post('/register', [
+        AuthController::class,
+        'register'
+    ]);
 
-Route::Post('/register',[AuthController::class,'register']);
-Route::Post('/login',[AuthController::class,'login']);
+    Route::post('/login', [
+        AuthController::class,
+        'login'
+    ]);
+
+});
+
+// Route::Post('/register',[AuthController::class,'register']);
+// Route::Post('/login',[AuthController::class,'login']);
 
 //AUTH ROUTE 
 
@@ -43,16 +69,208 @@ Route::middleware('auth:sanctum')->group(function (){
 });
 
 
+Route::prefix('public')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Categories
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/categories', [
+        CategoryController::class,
+        'index'
+    ]);
+
+    Route::get('/categories/{category}', [
+        CategoryController::class,
+        'show'
+    ]);
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Brands
+    |--------------------------------------------------------------------------
+    */
 
-Route::get('/categories',function(){
-     return Category::where('status', true)->get();
+    Route::get('/brands', [
+        BrandController::class,
+        'index'
+    ]);
+
+    Route::get('/brands/{brand}', [
+        BrandController::class,
+        'show'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Products
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/products', [
+        ProductController::class,
+        'index'
+    ]);
+
+    Route::get('/products/{product}', [
+        ProductController::class,
+        'show'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product Variants
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/products/{product}/variants', [
+        ProductVariantController::class,
+        'productVariants'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product Reviews
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/products/{product}/reviews', [
+        ReviewController::class,
+        'productReviews'
+    ]);
 
 });
 
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{product}', [ProductController::class, 'show']);
+
+
+// Route::get('/categories',function(){
+//      return Category::where('status', true)->get();
+
+// });
+
+// Route::get('/products', [ProductController::class, 'index']);
+// Route::get('/products/{product}', [ProductController::class, 'show']);
+// Route::get('/products/{product}', [ProductController::class, 'show']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/auth/logout', [
+        AuthController::class,
+        'logout'
+    ]);
+
+    Route::get('/auth/me', [
+        AuthController::class,
+        'me'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CART
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/cart', [
+        CartController::class,
+        'index'
+    ]);
+
+    Route::post('/cart', [
+        CartController::class,
+        'store'
+    ]);
+
+    Route::put('/cart/{id}', [
+        CartController::class,
+        'update'
+    ]);
+
+    Route::delete('/cart/{id}', [
+        CartController::class,
+        'destroy'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ORDERS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/checkout', [
+        OrderController::class,
+        'checkout'
+    ]);
+
+    Route::get('/my-orders', [
+        OrderController::class,
+        'myOrders'
+    ]);
+
+    Route::get('/orders/{id}', [
+        OrderController::class,
+        'show'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PAYMENTS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/payment/esewa/{order}', [
+        PaymentController::class,
+        'pay'
+    ]);
+
+    Route::get('/payment/{order}', [
+        PaymentController::class,
+        'show'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | REVIEWS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post('/products/{product}/reviews', [
+        ReviewController::class,
+        'store'
+    ]);
+
+    Route::get('/my-reviews', [
+        ReviewController::class,
+        'myReviews'
+    ]);
+
+    Route::put('/reviews/{id}', [
+        ReviewController::class,
+        'update'
+    ]);
+
+    Route::delete('/reviews/{id}', [
+        ReviewController::class,
+        'destroy'
+    ]);
+
+});
 
 //ADMIN DASHBOARD ROUTE
 

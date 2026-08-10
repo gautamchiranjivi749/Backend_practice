@@ -7,15 +7,19 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\OrderItem;
 
-
-class order extends Model
+class Order extends Model
 {
-  protected $fillable = [
+    protected $fillable = [
         'user_id',
+        'order_number',
         'total_amount',
         'status',
         'payment_method',
-        'payment_status'
+        'payment_status',
+    ];
+
+    protected $casts = [
+        'total_amount' => 'decimal:2',
     ];
 
     public function user()
@@ -27,8 +31,9 @@ class order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
     public function payment()
-{
-    return $this->hasOne(Payment::class);
-}
+    {
+        return $this->hasOne(Payment::class);
+    }
 }
