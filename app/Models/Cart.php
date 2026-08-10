@@ -4,13 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\User;
 
 class Cart extends Model
 {
-     protected $fillable = [
+    protected $fillable = [
         'user_id',
         'product_id',
-        'quantity'
+        'product_variant_id',
+        'quantity',
     ];
 
     public function user()
@@ -21,5 +24,13 @@ class Cart extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(
+            ProductVariant::class,
+            'product_variant_id'
+        );
     }
 }
