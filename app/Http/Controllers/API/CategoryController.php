@@ -15,12 +15,24 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        return CategoryResource::collection(
-        Category::latest()->paginate(5)
-        );
+  public function index(Request $request)
+{
+    $query = Category::query();
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+              ->orWhere('slug', 'LIKE', "%{$search}%")
+              ->orWhere('description', 'LIKE', "%{$search}%");
+        });
     }
+
+    return CategoryResource::collection(
+        $query->latest()->get()
+    );
+}
 
     /**
      * Store a newly created resource in storage.
