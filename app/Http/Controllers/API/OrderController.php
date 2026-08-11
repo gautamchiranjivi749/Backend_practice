@@ -7,16 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
-    /**
-     * Checkout
-     */
     public function checkout(Request $request)
     {
         $request->validate([
@@ -27,7 +22,7 @@ class OrderController extends Controller
 
         $cartItems = Cart::with([
             'product',
-            'variant'
+            'productVariant'
         ])
         ->where('user_id', $user->id)
         ->get();
@@ -44,177 +39,99 @@ class OrderController extends Controller
         try {
 
             $total = 0;
+            $orderItems = [];
 
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 1: Validate stock
-            |--------------------------------------------------------------------------
-            */
+            foreach ($cartItems as $cartItem) {
 
-            foreach ($cartItems as $item) {
+                $product = $cartItem->product;
+                $variant = $cartItem->productVariant;
 
-                if ($item->variant) {
+                /*
+                |--------------------------------------------------------------------------
+                | Check Product
+                |--------------------------------------------------------------------------
+                */
 
-                    $variant = ProductVariant::where(
-                        'id',
-                        $item->variant->id
-                    )
-                    ->lockForUpdate()
-                    ->first();
+                if (!$product || !$product->status) {
+                    throw new \Exception(
+                        "Product {$cartItem->product_id} is unavailable."
+                    );
+                }
 
-                    if (!$variant) {
+                /*
+                |--------------------------------------------------------------------------
+                | Determine Price and Stock
+                |--------------------------------------------------------------------------
+                */
+
+                if ($variant) {
+
+                    if (!$variant->status) {
                         throw new \Exception(
-                            'Product variant not found.'
+                            "Selected product variant is unavailable."
                         );
                     }
 
-                    if ($variant->stock < $item->quantity) {
-
-                        throw new \Exception(
-                            "Insufficient stock for {$item->product->name}."
-                        );
-                    }
-
-                    $price = $variant->price
-                        ?? $item->product->price;
+                    $price = $variant->price ?? $product->price;
+                    $stock = $variant->stock;
 
                 } else {
 
-                    $product = Product::where(
-                        'id',
-                        $item->product_id
-                    )
-                    ->lockForUpdate()
-                    ->first();
-
-                    if (!$product) {
-                        throw new \Exception(
-                            'Product not found.'
-                        );
-                    }
-
-                    if ($product->stock < $item->quantity) {
-
-                        throw new \Exception(
-                            "Insufficient stock for {$product->name}."
-                        );
-                    }
-
                     $price = $product->price;
-                }
-
-                $total +=
-                    $price * $item->quantity;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 2: Create Order
-            |--------------------------------------------------------------------------
-            */
-
-            $order = Order::create([
-                'user_id' => $user->id,
-
-                'order_number' =>
-                    'ORD-' . strtoupper(
-                        Str::random(10)
-                    ),
-
-                'total_amount' => $total,
-
-                'status' => 'Pending',
-
-                'payment_method' =>
-                    $request->payment_method,
-
-                'payment_status' => 'unpaid',
-            ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | STEP 3: Create Order Items
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($cartItems as $item) {
-
-                $product = Product::findOrFail(
-                    $item->product_id
-                );
-
-                /*
-                |--------------------------------------------------------------------------
-                | Variant Product
-                |--------------------------------------------------------------------------
-                */
-
-                if ($item->variant) {
-
-                    $variant = ProductVariant::where(
-                        'id',
-                        $item->variant->id
-                    )
-                    ->lockForUpdate()
-                    ->first();
-
-                    $price =
-                        $variant->price
-                        ?? $product->price;
-
-                    $variantName =
-                        collect([
-                            $variant->color ?? null,
-                            $variant->size ?? null,
-                        ])
-                        ->filter()
-                        ->implode(' / ');
-
-                    $variant->decrement(
-                        'stock',
-                        $item->quantity
-                    );
-
+                    $stock = $product->stock;
                 }
 
                 /*
                 |--------------------------------------------------------------------------
-                | Normal Product
+                | Check Stock
                 |--------------------------------------------------------------------------
                 */
 
-                else {
+                if ($stock < $cartItem->quantity) {
 
-                    $product = Product::where(
-                        'id',
-                        $item->product_id
-                    )
-                    ->lockForUpdate()
-                    ->first();
-
-                    $price =
-                        $product->price;
-
-                    $variantName = null;
-
-                    $product->decrement(
-                        'stock',
-                        $item->quantity
+                    throw new \Exception(
+                        "Insufficient stock for {$product->name}."
                     );
                 }
 
-                $subtotal =
-                    $price * $item->quantity;
+                /*
+                |--------------------------------------------------------------------------
+                | Calculate Subtotal
+                |--------------------------------------------------------------------------
+                */
 
-                OrderItem::create([
-                    'order_id' =>
-                        $order->id,
+                $subtotal = $price * $cartItem->quantity;
 
-                    'product_id' =>
-                        $product->id,
+                $total += $subtotal;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Variant Name
+                |--------------------------------------------------------------------------
+                */
+
+                $variantName = null;
+
+                if ($variant) {
+
+                    $parts = [];
+
+                    if ($variant->color) {
+                        $parts[] = $variant->color;
+                    }
+
+                    if ($variant->size) {
+                        $parts[] = $variant->size;
+                    }
+
+                    $variantName = implode(' / ', $parts);
+                }
+
+                $orderItems[] = [
+                    'product_id' => $product->id,
 
                     'product_variant_id' =>
-                        $item->variant?->id,
+                        $variant?->id,
 
                     'product_name' =>
                         $product->name,
@@ -223,40 +140,128 @@ class OrderController extends Controller
                         $variantName,
 
                     'quantity' =>
-                        $item->quantity,
+                        $cartItem->quantity,
 
                     'price' =>
                         $price,
 
                     'subtotal' =>
                         $subtotal,
-                ]);
+                ];
             }
 
             /*
             |--------------------------------------------------------------------------
-            | STEP 4: Clear Cart
+            | Create Order
             |--------------------------------------------------------------------------
             */
 
-            Cart::where(
-                'user_id',
-                $user->id
-            )->delete();
+            $order = Order::create([
+
+                'user_id' =>
+                    $user->id,
+
+                'order_number' =>
+                    'ORD-' . strtoupper(Str::random(10)),
+
+                'total_amount' =>
+                    $total,
+
+                'status' =>
+                    'Pending',
+
+                'payment_method' =>
+                    $request->payment_method,
+
+                'payment_status' =>
+                    'unpaid',
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create Order Items + Reduce Stock
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($cartItems as $index => $cartItem) {
+
+                $item = $orderItems[$index];
+
+                OrderItem::create([
+                    'order_id' =>
+                        $order->id,
+
+                    'product_id' =>
+                        $item['product_id'],
+
+                    'product_variant_id' =>
+                        $item['product_variant_id'],
+
+                    'product_name' =>
+                        $item['product_name'],
+
+                    'variant_name' =>
+                        $item['variant_name'],
+
+                    'quantity' =>
+                        $item['quantity'],
+
+                    'price' =>
+                        $item['price'],
+
+                    'subtotal' =>
+                        $item['subtotal'],
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reduce Stock
+                |--------------------------------------------------------------------------
+                */
+
+                if ($cartItem->productVariant) {
+
+                    $cartItem->productVariant->decrement(
+                        'stock',
+                        $cartItem->quantity
+                    );
+
+                } else {
+
+                    $cartItem->product->decrement(
+                        'stock',
+                        $cartItem->quantity
+                    );
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Clear Cart
+            |--------------------------------------------------------------------------
+            */
+
+            Cart::where('user_id', $user->id)->delete();
 
             DB::commit();
 
+            /*
+            |--------------------------------------------------------------------------
+            | Return Order
+            |--------------------------------------------------------------------------
+            */
+
+            $order->load('items');
+
             return response()->json([
+
                 'success' => true,
 
                 'message' =>
                     'Order placed successfully.',
 
-                'order' =>
-                    $order->load([
-                        'items.product',
-                        'items.variant'
-                    ])
+                'order' => $order,
+
             ], 201);
 
         } catch (\Exception $e) {
@@ -264,60 +269,64 @@ class OrderController extends Controller
             DB::rollBack();
 
             return response()->json([
+
                 'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+
+                'message' =>
+                    $e->getMessage(),
+
+            ], 400);
         }
     }
 
-    /**
-     * Customer order history
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customer Orders
+    |--------------------------------------------------------------------------
+    */
+
     public function myOrders(Request $request)
     {
-        $orders = Order::with([
-            'items.product',
-            'items.variant',
-            'payment'
-        ])
-        ->where(
-            'user_id',
-            $request->user()->id
-        )
-        ->latest()
-        ->get();
+        $orders = Order::with('items')
+            ->where(
+                'user_id',
+                $request->user()->id
+            )
+            ->latest()
+            ->get();
 
         return response()->json([
+
             'success' => true,
+
             'message' =>
                 'Orders fetched successfully.',
-            'data' => $orders
+
+            'data' => $orders,
+
         ]);
     }
 
-    /**
-     * Show one customer order
-     */
-    public function show(
-        Request $request,
-        $id
-    ) {
-        $order = Order::with([
-            'items.product',
-            'items.variant',
-            'payment'
-        ])
-        ->where(
-            'user_id',
-            $request->user()->id
-        )
-        ->findOrFail($id);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Single Order
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(Request $request, $id)
+    {
+        $order = Order::with('items')
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
 
         return response()->json([
+
             'success' => true,
-            'message' =>
-                'Order fetched successfully.',
-            'data' => $order
+
+            'data' => $order,
+
         ]);
     }
 }
