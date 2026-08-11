@@ -60,7 +60,7 @@ class ProductController extends Controller
 
         return $this->success(
             ProductResource::collection(
-                $products->paginate(2)
+                $products->get()
             ),
             'Products fetched successfully.'
         );
