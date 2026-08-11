@@ -22,18 +22,18 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\ReviewController;
+use App\Http\Controllers\API\UserAddressController;
+use App\Http\Controllers\API\WishlistController;
+use App\Http\Controllers\API\CustomerController;
+use App\Http\Controllers\API\InventoryController;
 
 // Admin
 use App\Http\Controllers\API\AdminCustomerController;
 use App\Http\Controllers\API\AdminOrderController;
 use App\Http\Controllers\API\AdminPaymentController;
 use App\Http\Controllers\API\AdminReviewController;
-use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\AdminDashboardController;
 use App\Http\Controllers\API\admin\DashboardController;
-use App\Http\Controllers\API\WishlistController;
-use App\Http\Controllers\API\CustomerController;
-use App\Http\Controllers\API\UserAddressController;
 
 
 
