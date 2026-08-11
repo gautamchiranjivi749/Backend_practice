@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\User;
 
 class Cart extends Model
 {
@@ -13,7 +13,7 @@ class Cart extends Model
         'user_id',
         'product_id',
         'product_variant_id',
-        'quantity',
+        'quantity'
     ];
 
     public function user()
@@ -26,11 +26,9 @@ class Cart extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function variant()
+    public function productVariant()
     {
-        return $this->belongsTo(
-            ProductVariant::class,
-            'product_variant_id'
-        );
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
+    
 }

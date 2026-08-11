@@ -18,7 +18,7 @@ class Payment extends Model
         'callback_response'
     ];
     protected $casts = [
-        'callback_respose' => 'array'
+        'callback_response' => 'array'
     ];
     public function order()
     {
