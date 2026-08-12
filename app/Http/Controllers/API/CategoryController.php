@@ -73,11 +73,14 @@ class CategoryController extends Controller
         'slug' => Str::slug($request->name),
         'description' => $request->description,
         'status' => $request->status
+        // update
     ]);
 
     return response()->json([
         'message' => 'Category updated successfully',
         'data' => new CategoryResource($category)
+        // result
+        
     ]);
     }
 
