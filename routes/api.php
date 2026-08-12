@@ -404,4 +404,5 @@ Route::middleware(['auth:sanctum','admin'])->prefix('admin')->group(function(){
     Route::post('/payment/esewa/{order}', [PaymentController::class, 'pay']);
 
     Route::post('/payment/esewa/{order}', [PaymentController::class,'pay']);
+    // final api resource
 });
